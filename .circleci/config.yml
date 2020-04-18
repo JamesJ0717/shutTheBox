@@ -1,0 +1,40 @@
+# Javascript Node CircleCI 2.0 configuration file
+#
+# Check https://circleci.com/docs/2.0/language-javascript/ for more details
+#
+version: 2.1
+jobs:
+  build:
+    docker:
+      - image: node
+
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "package.json" }}
+      - run: yarn install
+      - save_cache:
+          paths:
+            - node_modules
+          key: v1-dependencies-{{ checksum "package.json" }}
+      - run: yarn build
+      - run:
+          name: Install GH_Pages
+          command: |
+            npm install -g gh-pages
+            git config user.email me@jamesjohnson.io
+            git config user.name "James Johnson"
+      - add_ssh_keys:
+          fingerprints:
+            - "fe:e3:83:3d:a9:58:87:b7:68:41:72:30:9a:64:7a:75"
+      - run:
+          name: Deploy to GH_Pages
+          command: gh-pages --dist build --repo "https://github.com/JamesJ0717/shutthebox-deploy.git"
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - build
